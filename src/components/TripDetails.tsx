@@ -1,17 +1,20 @@
 import {Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
 import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
 import {Black, Gold, Gray, LightGold, White} from '../constants/Color';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
+import { LocationContext } from '../context/LocationProvider';
 
 export default function TripDetails() {
   const navigation: any = useNavigation();
   const [mode, setmode] = useState('first');
   const bottomSheetRef = useRef<BottomSheet>(null);
   const screenHeight = Dimensions.get('window').height;
+  
+  const {location} = useContext(LocationContext)
 
   const snapPoints = useMemo(() => ['25%', '60%'], []);
 
@@ -41,13 +44,13 @@ export default function TripDetails() {
 <MapView
         style={styles.map}
         initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
+          latitude: location.latitude,
+          longitude: location.longitude,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
       >
-        <Marker coordinate={{ latitude: 37.78825, longitude: -122.4324 }} />
+        <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} />
       </MapView>
 
 

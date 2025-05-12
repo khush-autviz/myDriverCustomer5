@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -17,6 +18,7 @@ import Logo from '../../assets/logo/mainLogo.svg'
 import { useAuthStore } from '../../store/authStore';
 import { useMutation } from '@tanstack/react-query';
 import { authSignup } from '../../constants/Api';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function Signup() {
   const SETUSER = useAuthStore(state => state.setUser)
@@ -82,21 +84,27 @@ export default function Signup() {
 
   return (
     <KeyboardAvoidingView
-      style={{
-        backgroundColor: Black,
-        flex: 1,
-        paddingTop: 30,
-        paddingHorizontal: 20,
-      }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    style={{ flex: 1 }}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+    <ScrollView style={{ flex: 1, backgroundColor: Black }}>
+      <SafeAreaView
+        style={{
+          backgroundColor: Black,
+          flex: 1,
+          paddingTop: 30,
+          paddingHorizontal: 20,
+          paddingBottom: 30,
+        }}>
       <TouchableOpacity onPress={() => navigation.goBack()}>
         <View style={styles.backRow}>
           <Ionicons name="chevron-back" size={20} color={White} />
           <Text style={styles.backText}> Back</Text>
         </View>
       </TouchableOpacity>
-      <Logo height={100} width={300} style={{marginTop: 30}} />
+      {/* <Logo height={100} width={300} style={{marginTop: 30}} /> */}
+      <Image source={require('../../assets/logo/mainLogo.png')} height={100} style={{marginTop: 30}} />
+
       <Text
         style={{color: White, fontWeight: '500', fontSize: 24, marginTop: 30}}>
         Sign Up
@@ -178,11 +186,11 @@ export default function Signup() {
         onPress={handleSignup}>
         <Text style={{color: White, fontWeight: '500'}}>Sign Up</Text>
       </TouchableOpacity>
-      <View style={styles.lineContainer}>
+      {/* <View style={styles.lineContainer}>
         <View style={styles.line} />
-        {/* <Text style={styles.text}>or</Text> */}
+        <Text style={styles.text}>or</Text>
         <View style={styles.line} />
-      </View>
+      </View> */}
       {/* <View
         style={{
           display: 'flex',
@@ -200,6 +208,8 @@ export default function Signup() {
           </Text>
         </TouchableOpacity>
       </View> */}
+      </SafeAreaView>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

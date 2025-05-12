@@ -6,6 +6,9 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  TextInputKeyPressEventData,
+  NativeSyntheticEvent,
+  Image,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -32,31 +35,49 @@ export default function OtpScreen() {
 
   const backspacePressed = useRef(false);
 
-  const handleKeyPress = (e: any, index: number) => {
-    backspacePressed.current = e.nativeEvent.key === 'Backspace';
-  };
-
-  const handleInputChange = (text: string, index: number) => {
-    const newOtp = [...otp];
-
-    if (backspacePressed.current) {
-      if (otp[index] !== '') {
-        newOtp[index] = '';
-        setOtp(newOtp);
-      } else if (index > 0) {
+  const handleKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
+    const key = e.nativeEvent.key;
+   
+    // Handle backspace
+    if (key === 'Backspace') {
+      // If current input is empty and we're not at the first input, move to previous input
+      if (otp[index] === '' && index > 0) {
+        // Move to previous input
+        inputRefs[index - 1].current?.focus();
+       
+        // Clear the previous input (optional, depending on desired behavior)
+        const newOtp = [...otp];
         newOtp[index - 1] = '';
         setOtp(newOtp);
-        inputRefs[index - 1].current?.focus();
-      }
-    } else {
-      newOtp[index] = text;
-      setOtp(newOtp);
-      if (text && index < inputRefs.length - 1) {
-        inputRefs[index + 1].current?.focus();
       }
     }
-
-    backspacePressed.current = false;
+  };
+ 
+  // Handle input changes
+  const handleInputChange = (text: string, index: number) => {
+    // Only allow numbers
+    if (!/^\d*$/.test(text)) {
+      return;
+    }
+   
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+   
+    // If text is entered and not at last input, move to next input
+    if (text && index < inputRefs.length - 1) {
+      inputRefs[index + 1].current?.focus();
+    }
+  };
+ 
+  // Handle text selection to detect cursor position
+  const handleSelectionChange = (e: any, index: number) => {
+    const { start, end } = e.nativeEvent.selection;
+   
+    // If cursor is at position 0 and backspace is pressed, we need to move to previous input
+    if (start === 0 && end === 0 && index > 0 && otp[index] === '') {
+      inputRefs[index - 1].current?.focus();
+    }
   };
 
   // verify otp mutation
@@ -118,9 +139,11 @@ export default function OtpScreen() {
         </View>
         </TouchableOpacity>
 
-        <Logo height={100} style={{marginTop: 15}} />
+        {/* <Image source={require('../../assets/logo/mainLogo.png')} height={100} style={{marginTop: 15}} /> */}
 
         <View style={styles.content}>
+        <Image source={require('../../assets/logo/mainLogo.png')} height={100} style={{marginBottom: 15}} />
+
           <Text style={styles.header}>Phone Verification</Text>
           <Text style={styles.subText}>Enter your OTP code</Text>
 
@@ -135,17 +158,20 @@ export default function OtpScreen() {
                 value={digit}
                 onKeyPress={e => handleKeyPress(e, index)}
                 onChangeText={text => handleInputChange(text, index)}
+                onSelectionChange={(e) => handleSelectionChange(e, index)}
                 autoFocus={index === 0}
+                selectTextOnFocus={true}
+                caretHidden={false}
               />
             ))}
           </View>
 
-          <View style={styles.resendContainer}>
+          {/* <View style={styles.resendContainer}>
             <Text style={styles.resendText}>Already have an account? </Text>
             <TouchableOpacity>
               <Text style={styles.resendLink}>Resend again</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
       </View>
 

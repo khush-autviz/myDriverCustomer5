@@ -153,6 +153,8 @@ import SplashScreen from 'react-native-splash-screen';
 import Location from './src/screens/Location';
 import TripDetails from './src/components/TripDetails';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { LocationProvider } from './src/context/LocationProvider';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -165,7 +167,7 @@ function MainTabs() {
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size }) => {
-          let iconName: string;
+          let iconName = '';
 
           if (route.name === 'Home') {
             iconName = 'home';
@@ -213,6 +215,8 @@ export default function App() {
   if (isLoading) return null;
 
   return (
+    <LocationProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <QueryClientProvider client={queryClient}>
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -222,8 +226,8 @@ export default function App() {
         ) : null}
 
         {/* Auth Screens */}
-        <Stack.Screen name="Signin" component={Signin} />
-        {/* <Stack.Screen name="Signin" component={MainTabs} /> */}
+        {/* <Stack.Screen name="Signin" component={Signin} /> */}
+        <Stack.Screen name="Signin" component={MainTabs} />
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="OtpScreen" component={OtpScreen} />
         <Stack.Screen name="Location" component={Location} />
@@ -236,5 +240,7 @@ export default function App() {
       </Stack.Navigator>
     </NavigationContainer>
     </QueryClientProvider>
+    </GestureHandlerRootView>
+    </LocationProvider>
   );
 }

@@ -75,7 +75,9 @@ export default function Signin() {
         paddingTop: 70,
         paddingHorizontal: 20,
       }}>
-      <Logo height={100} />
+      {/* <Logo height={100} /> */}
+      <Image source={require('../../assets/logo/mainLogo.png')} height={100} style={{marginTop: 15}} />
+
       <Text style={{color: White, fontWeight: '500', fontSize: 24, marginTop: 50}}>
         Sign In
       </Text>
@@ -107,11 +109,11 @@ export default function Signin() {
         onPress={handleSignin}>
         <Text style={{color: White, fontWeight: '500'}}>Sign In</Text>
       </TouchableOpacity>
-      <View style={styles.lineContainer}>
+      {/* <View style={styles.lineContainer}>
         <View style={styles.line} />
         <View style={styles.line} />
-      </View>
-      <View
+      </View> */}
+      {/* <View
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -119,15 +121,15 @@ export default function Signin() {
           flexDirection: 'row',
           marginTop: 20,
         }}>
-        {/* <Text style={{color: White, fontWeight: '500', fontSize: 16}}>
+        <Text style={{color: White, fontWeight: '500', fontSize: 16}}>
           Find your account{' '}
-        </Text> */}
-        {/* <TouchableOpacity onPress={() => navigation.navigate('OtpScreen')}>
+        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('OtpScreen')}>
           <Text style={{color: Gold, fontWeight: '500', fontSize: 16}}>
             Sign Up
           </Text>
-        </TouchableOpacity> */}
-      </View>
+        </TouchableOpacity>
+      </View> */}
     </SafeAreaView>
   );
 }

@@ -19,6 +19,7 @@ import {
 } from '../constants/Color';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import Geolocation from 'react-native-geolocation-service'
 // import Geolocation from '@react-native-community/geolocation';
 // import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 
@@ -31,12 +32,13 @@ type LocationType = {
 
 export default function Home() {
   const navigation: any = useNavigation();
-  const [location, setLocation] = useState<LocationType>(null);
+  const [location, setLocation] = useState<any>(null);
   console.log(location);
 
   useEffect(() => {
     // fetchLocation();
     // getInitialLocation()
+    // getCurrentLocation()
   }, []);
 
 
@@ -149,6 +151,83 @@ export default function Home() {
   //     }
   //   );
   // };
+
+
+  const [watchId, setWatchId] = useState<any>(null);
+
+  // Ask for permission (Android only)
+  const requestPermission = async () => {
+    if (Platform.OS === 'ios') {
+      return true; // iOS prompts automatically
+    }
+
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        title: 'Location Permission',
+        message: 'App needs access to your location',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  };
+
+  // Get current location
+  const getCurrentLocation = async () => {
+    const hasPermission = await requestPermission();
+    if (!hasPermission) return;
+
+    Geolocation.getCurrentPosition(
+      (position) => {
+        setLocation(position);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
+  // Start live location tracking
+  const startTracking = async () => {
+    const hasPermission = await requestPermission();
+    if (!hasPermission) return;
+
+    const id = Geolocation.watchPosition(
+      (position) => {
+        setLocation(position);
+      },
+      (error) => {
+        console.error('Error watching position:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 0,
+        interval: 5000,
+        fastestInterval: 2000,
+      }
+    );
+    setWatchId(id);
+  };
+
+  // Stop tracking
+  const stopTracking = () => {
+    if (watchId !== null) {
+      Geolocation.clearWatch(watchId);
+      setWatchId(null);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      // Clean up watcher on unmount
+      if (watchId !== null) {
+        Geolocation.clearWatch(watchId);
+      }
+    };
+  }, [watchId]);
 
   return (
     <View style={styles.container}>

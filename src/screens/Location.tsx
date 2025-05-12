@@ -1,71 +1,154 @@
+// Location.tsx
 import {
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
+  Alert,
+  FlatList,
+  TouchableOpacity,
 } from 'react-native';
-import React from 'react';
-import {Black, DarkGray, Gold, Gray, LightGold, White} from '../constants/Color';
-import {useNavigation} from '@react-navigation/native';
+import React, { useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Black, Gold, White } from '../constants/Color';
+import { useAuthStore } from '../store/authStore';
+import PlacesSearch from '../test/PlaceSearch'; // Import the updated PlacesSearch component
+
+interface Suggestion {
+  description: string;
+  place_id: string;
+}
 
 export default function Location() {
   const navigation: any = useNavigation();
+  const setPickupLocation = useAuthStore((state) => state.setPickupLocation);
+  const setDestinationLocation = useAuthStore((state) => state.setDestinationLocation);
+
+  const [pickupSelected, setPickupSelected] = useState(false);
+  const [dropSelected, setDropSelected] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [activeType, setActiveType] = useState<'pickup' | 'drop' | null>(null);
+
+  const placesSearchRef = useRef<any>(null); // Create a ref for PlacesSearch component
+
+  const handleSelect = (coords: { lat: number; lng: number }, description: string) => {
+    if (activeType === 'pickup') {
+      setPickupLocation({ lat: coords.lat, lng: coords.lng, description });
+      setPickupSelected(true);
+      setActiveType(null);
+    } else if (activeType === 'drop') {
+      if (!pickupSelected) {
+        Alert.alert('Please select your pickup location first');
+        return;
+      }
+      setDestinationLocation({ lat: coords.lat, lng: coords.lng, description });
+      setDropSelected(true);
+      setActiveType(null);
+    }
+    setSuggestions([]);
+  };
+
+  // Navigate when both locations are selected
+  if (pickupSelected && dropSelected) {
+    setTimeout(() => navigation.navigate('TripDetails'), 100);
+  }
 
   return (
-    <View style={{flex: 1, backgroundColor: Black, padding: 20}}>
-      <View style={{flexDirection: 'row', alignItems: 'center'}}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={20} color={Gold} />
-        </TouchableOpacity>
-        <Text style={{color: Gold, fontSize: 18, paddingLeft: 10}}>Drop</Text>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Ionicons name="chevron-back" size={20} color={Gold} onPress={() => navigation.goBack()} />
+        <Text style={styles.headerText}>Select Locations</Text>
       </View>
-      <View
-        style={{
-          borderColor: Gold,
-          borderWidth: 1,
-          marginTop: 20,
-          padding: 10,
-          //   height: 50,
-          borderRadius: 8,
-          flexDirection: 'row',
-          gap: 20,
-        }}>
-        <View style={{gap: 20}}>
+
+      {/* Inputs */}
+      <View style={styles.inputContainer}>
+        <View style={styles.iconColumn}>
           <Ionicons name="location" size={20} color="green" />
           <Ionicons name="location" size={20} color="red" />
         </View>
-        <View style={{gap: 10, width: '90%'}}>
-          <TextInput placeholder="Enter your current location" />
-          <View style={styles.lineContainer}>
-            <View style={styles.line} />
-          </View>
-          <TextInput placeholder="Enter your drop location" />
+
+        <View style={{ gap: 15, width: '90%' }}>
+          {/* Pickup Location */}
+          <PlacesSearch
+            ref={placesSearchRef} // Pass ref to PlacesSearch
+            placeholder="Pickup location"
+            onPlaceSelected={handleSelect}
+            setSuggestions={setSuggestions}
+            setActive={() => setActiveType('pickup')}
+          />
+
+          {/* Drop Location */}
+          <PlacesSearch
+            ref={placesSearchRef} // Pass ref to PlacesSearch
+            placeholder="Drop location"
+            onPlaceSelected={handleSelect}
+            setSuggestions={setSuggestions}
+            setActive={() => setActiveType('drop')}
+          />
         </View>
       </View>
-      <TouchableOpacity onPress={() => navigation.navigate('TripDetails')} style={{marginTop: 20, marginBottom:10, backgroundColor: Gold, borderRadius: 20, padding: 10, width: '45%', flexDirection: 'row', gap:5 }}>
-        <Ionicons name="location" size={20} color="purple" />
-           <Text style={{fontWeight: '700', color:DarkGray}}>
-             Select on map
-            </Text>
-      </TouchableOpacity>
-      <View style={styles.lineContainer}>
-            <View style={styles.line} />
-          </View>
+
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <View style={styles.suggestionBox}>
+          <FlatList
+            data={suggestions}
+            keyExtractor={(item) => item.place_id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() =>
+                  // Now directly call `fetchPlaceDetails` via the ref
+                  placesSearchRef.current.fetchPlaceDetails(item.place_id, item.description)
+                }>
+                <Text style={styles.suggestionText}>{item.description}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  lineContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: Black,
+    padding: 20,
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
   },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ccc',
+  headerText: {
+    color: Gold,
+    fontSize: 18,
+    paddingLeft: 10,
+  },
+  inputContainer: {
+    borderColor: Gold,
+    borderWidth: 1,
+    marginTop: 20,
+    padding: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 20,
+  },
+  iconColumn: {
+    gap: 20,
+  },
+  suggestionBox: {
+    marginTop: 10,
+    backgroundColor: '#222',
+    borderRadius: 8,
+    padding: 8,
+  },
+  suggestionText: {
+    color: White,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#444',
   },
 });
+
