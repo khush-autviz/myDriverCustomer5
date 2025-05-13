@@ -1,26 +1,62 @@
-import {Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
-import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
-import BottomSheet, {BottomSheetView} from '@gorhom/bottom-sheet';
-import {Black, Gold, Gray, LightGold, White} from '../constants/Color';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { Black, Gold, Gray, LightGold, White } from '../constants/Color';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
-import MapView, { Marker } from 'react-native-maps';
+import { useNavigation } from '@react-navigation/native';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { LocationContext } from '../context/LocationProvider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '../store/authStore';
+import MapViewDirections from 'react-native-maps-directions';
 
 export default function TripDetails() {
   const navigation: any = useNavigation();
   const [mode, setmode] = useState('first');
   const bottomSheetRef = useRef<BottomSheet>(null);
   const screenHeight = Dimensions.get('window').height;
-  
-  const {location} = useContext(LocationContext)
+
+  const { pickupLocation, destinationLocation } = useAuthStore();
+
+  const { location } = useContext(LocationContext)
 
   const snapPoints = useMemo(() => ['25%', '60%'], []);
+
+
+  // location details
+
+
+  const pickupCoord =
+    pickupLocation && pickupLocation.lat !== undefined && pickupLocation.lng !== undefined
+      ? { latitude: pickupLocation.lat, longitude: pickupLocation.lng }
+      : undefined;
+
+  const destinationCoord =
+    destinationLocation && destinationLocation.lat !== undefined && destinationLocation.lng !== undefined
+      ? { latitude: destinationLocation.lat, longitude: destinationLocation.lng }
+      : undefined;
+
 
   const handleSheetChanges = useCallback((index: number) => {
     console.log('handleSheetChanges', index);
   }, []);
+
+  const logAllKeys = async () => {
+    const keys = await AsyncStorage.getAllKeys();
+    const stores = await AsyncStorage.multiGet(keys);
+    stores.forEach(([key, value]) => {
+      console.log(`${key}: ${value}`);
+    });
+  };
+
+  useEffect(() => {
+    logAllKeys()
+  }, [])
+
+
+
+
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -35,22 +71,30 @@ export default function TripDetails() {
         <Ionicons name="chevron-back-circle" size={32} color={Gold} />
       </TouchableOpacity>
 
-      {/* <Image
-        source={require('../assets/images/staticMap.png')}
-        style={{width: '100%', height: 600}}
-        resizeMode="cover"
-      /> */}
 
-<MapView
+      <MapView
         style={styles.map}
+        showsCompass={false}
         initialRegion={{
           latitude: location.latitude,
           longitude: location.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
         }}
       >
         <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} />
+        <Marker coordinate={{
+          latitude: destinationLocation?.lat, longitude: destinationLocation?.lng
+        }} />
+
+        <MapViewDirections
+          origin={pickupCoord}
+          destination={destinationCoord}
+          apikey='AIzaSyBcKgyA7urR7gHyen79h40UlkvTJJoKc9I'
+          strokeColor="#fff"
+          strokeWidth={4}
+        />
+
       </MapView>
 
 
@@ -59,14 +103,14 @@ export default function TripDetails() {
         index={1} // start hidden
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
-        handleIndicatorStyle={{backgroundColor: Gold}}
-        backgroundStyle={{backgroundColor: Black}}>
+        handleIndicatorStyle={{ backgroundColor: Gold }}
+        backgroundStyle={{ backgroundColor: Black }}>
         <BottomSheetView style={styles.contentContainer}>
           {mode === 'first' && (
             <>
               {/* <View style={{maxHeight: screenHeight * 0.25}}> */}
 
-              <ScrollView style={{maxHeight: '100%'}}>
+              <ScrollView style={{ maxHeight: '100%' }}>
                 <View
                   style={{
                     display: 'flex',
@@ -99,16 +143,16 @@ export default function TripDetails() {
                         }}>
                         Bike
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         Quick Bike Rides
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         10 min away
                       </Text>
                     </View>
                   </View>
                   <Text
-                    style={{color: LightGold, fontSize: 14, fontWeight: '700'}}>
+                    style={{ color: LightGold, fontSize: 14, fontWeight: '700' }}>
                     $20
                   </Text>
                 </View>
@@ -144,16 +188,16 @@ export default function TripDetails() {
                         }}>
                         Cab Economy
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         Quick Car Rides
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         8 min away
                       </Text>
                     </View>
                   </View>
                   <Text
-                    style={{color: LightGold, fontSize: 14, fontWeight: '700'}}>
+                    style={{ color: LightGold, fontSize: 14, fontWeight: '700' }}>
                     $30
                   </Text>
                 </View>
@@ -189,59 +233,59 @@ export default function TripDetails() {
                         }}>
                         Cab Premium
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         Premium car Rides
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         10 min away
                       </Text>
                     </View>
                   </View>
                   <Text
-                    style={{color: LightGold, fontSize: 14, fontWeight: '700'}}>
+                    style={{ color: LightGold, fontSize: 14, fontWeight: '700' }}>
                     $40
                   </Text>
                 </View>
                 <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 10,
-                borderColor: Gold,
-                borderWidth: 2,
-                borderRadius: 8,
-                paddingVertical: 10,
-                paddingHorizontal: 10,
-                marginBottom: 10,
-              }}>
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 20,
-                }}>
-                <Ionicons name="car-sport" size={30} color="green" />
-                <View>
-                  <Text
-                    style={{color: LightGold, fontSize: 14, fontWeight: '500'}}>
-                    Cab Premium
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    borderColor: Gold,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    paddingVertical: 10,
+                    paddingHorizontal: 10,
+                    marginBottom: 10,
+                  }}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 20,
+                    }}>
+                    <Ionicons name="car-sport" size={30} color="green" />
+                    <View>
+                      <Text
+                        style={{ color: LightGold, fontSize: 14, fontWeight: '500' }}>
+                        Cab Premium
+                      </Text>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
+                        Premium car Rides
+                      </Text>
+                      <Text style={{ color: Gray, fontSize: 12 }}>10 min away</Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: LightGold, fontSize: 14, fontWeight: '700' }}>
+                    $40
                   </Text>
-                  <Text style={{color: Gray, fontSize: 12}}>
-                    Premium car Rides
-                  </Text>
-                  <Text style={{color: Gray, fontSize: 12}}>10 min away</Text>
                 </View>
-              </View>
-              <Text style={{color: LightGold, fontSize: 14, fontWeight: '700'}}>
-                $40
-              </Text>
-            </View>
               </ScrollView>
-                {/* </View> */}
+              {/* </View> */}
               <View
                 style={{
                   borderTopColor: White,
@@ -303,7 +347,7 @@ export default function TripDetails() {
                     marginTop: 10,
                   }}
                   onPress={() => setmode('second')}
-                  >
+                >
                   <Text
                     style={{
                       color: White,
@@ -330,10 +374,10 @@ export default function TripDetails() {
                   paddingBottom: 10,
                 }}>
                 <View>
-                  <Text style={{color: Gold, fontSize: 14, fontWeight: 500}}>
+                  <Text style={{ color: Gold, fontSize: 14, fontWeight: 500 }}>
                     Looking for your
                   </Text>
-                  <Text style={{color: Gold, fontSize: 16, fontWeight: '700'}}>
+                  <Text style={{ color: Gold, fontSize: 16, fontWeight: '700' }}>
                     Ride
                   </Text>
                 </View>
@@ -372,14 +416,14 @@ export default function TripDetails() {
                   </Text>
                 </View>
               </View> */}
-              <View style={{display: 'flex', flexDirection: 'row', gap: 10, alignItems: 'center', paddingBottom: 10}}>
+              <View style={{ display: 'flex', flexDirection: 'row', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
                 <TouchableOpacity onPress={() => setmode('second')}>
-                <Ionicons name='chevron-back' size={24} color={Gold} />
+                  <Ionicons name='chevron-back' size={24} color={Gold} />
 
                 </TouchableOpacity>
-              <Text style={{color: Gold, fontSize: 18, fontWeight: 700}}>
-                Location Details
-              </Text>
+                <Text style={{ color: Gold, fontSize: 18, fontWeight: 700 }}>
+                  Location Details
+                </Text>
               </View>
               <View
                 style={{
@@ -397,16 +441,16 @@ export default function TripDetails() {
                     gap: 15,
                     alignItems: 'center',
                   }}>
-                  <View style={{gap: 10}}>
+                  <View style={{ gap: 10 }}>
                     <Ionicons name="location" size={20} color="green" />
                   </View>
                   <View>
                     <View>
                       <Text
-                        style={{color: Gold, fontSize: 14, fontWeight: 700}}>
+                        style={{ color: Gold, fontSize: 14, fontWeight: 700 }}>
                         FZ5
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         Chandigarh, India
                       </Text>
                     </View>
@@ -419,31 +463,31 @@ export default function TripDetails() {
                     gap: 15,
                     alignItems: 'center',
                   }}>
-                  <View style={{gap: 10}}>
+                  <View style={{ gap: 10 }}>
                     <Ionicons name="location" size={20} color="red" />
                   </View>
                   <View>
                     <View>
                       <Text
-                        style={{color: Gold, fontSize: 14, fontWeight: 700}}>
+                        style={{ color: Gold, fontSize: 14, fontWeight: 700 }}>
                         FZ5
                       </Text>
-                      <Text style={{color: Gray, fontSize: 12}}>
+                      <Text style={{ color: Gray, fontSize: 12 }}>
                         Chandigarh, India
                       </Text>
                     </View>
                   </View>
                 </View>
               </View>
-              <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20}}> 
-                <Text style={{color: Gold, fontSize: 18, fontWeight: 700}}>
+              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                <Text style={{ color: Gold, fontSize: 18, fontWeight: 700 }}>
                   Total
                 </Text>
-                <Text style={{color: Gold, fontSize: 18, fontWeight: 700}}>
+                <Text style={{ color: Gold, fontSize: 18, fontWeight: 700 }}>
                   $40
                 </Text>
               </View>
-              <View style={{borderBottomColor: Gold, borderWidth: 3, borderRadius: 10, marginTop: 10}}></View>
+              <View style={{ borderBottomColor: Gold, borderWidth: 3, borderRadius: 10, marginTop: 10 }}></View>
               <TouchableOpacity
                 style={{
                   backgroundColor: Gold,
@@ -469,7 +513,7 @@ export default function TripDetails() {
                   marginTop: 10,
                 }}
                 onPress={() => setmode('first')}
-                >
+              >
                 <Text
                   style={{
                     color: White,
