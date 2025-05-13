@@ -82,7 +82,7 @@ export default function TripDetails() {
           longitudeDelta: 0.01,
         }}
       >
-        <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} />
+        <Marker coordinate={{ latitude: pickupLocation?.lat, longitude: pickupLocation?.lng }} />
         <Marker coordinate={{
           latitude: destinationLocation?.lat, longitude: destinationLocation?.lng
         }} />

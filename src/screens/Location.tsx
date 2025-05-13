@@ -29,7 +29,7 @@
 //   const [dropSelected, setDropSelected] = useState(false);
 //   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 //   const [activeType, setActiveType] = useState<'pickup' | 'drop' | null>(null);
-//   const [currentLocationDescription, setCurrentLocationDescription] = useState('');
+//   const [fullLocationDescription, setFullLocationDescription] = useState('');
 
 //   const placesSearchRef = useRef<any>(null);
 
@@ -46,7 +46,7 @@
 //           const data = await response.json();
 //           if (data.results && data.results.length > 0) {
 //             const address = data.results[0].formatted_address;
-//             setCurrentLocationDescription(address);
+//             setFullLocationDescription(address);
 //             // Set pickup location with current coordinates and address
 //             setPickupLocation({ 
 //               lat: location.latitude, 
@@ -90,23 +90,23 @@
 //     <View style={styles.container}>
 //       {/* Header */}
 //       <View style={styles.header}>
-//         <Ionicons name="chevron-back" size={20} color={Gold} onPress={() => navigation.goBack()} />
+//         <Ionicons name="chevron-back" size={24} color={Gold} onPress={() => navigation.goBack()} />
 //         <Text style={styles.headerText}>Select Locations</Text>
 //       </View>
 
 //       {/* Inputs */}
 //       <View style={styles.inputContainer}>
 //         <View style={styles.iconColumn}>
-//           <Ionicons name="location" size={20} color="green" />
-//           <Ionicons name="location" size={20} color="red" />
+//           <Ionicons name="location" size={22} color="green" />
+//           <Ionicons name="location" size={22} color="red" />
 //         </View>
 
-//         <View style={{ gap: 15, width: '90%' }}>
+//         <View style={styles.inputsColumn}>
 //           {/* Pickup Location */}
 //           <PlacesSearch
 //             ref={placesSearchRef}
 //             placeholder="Pickup location"
-//             initialValue={currentLocationDescription}
+//             initialValue="Your Current Location"
 //             onPlaceSelected={handleSelect}
 //             setSuggestions={setSuggestions}
 //             setActive={() => setActiveType('pickup')}
@@ -123,7 +123,7 @@
 //         </View>
 //       </View>
 
-//       {/* Suggestions - Moved outside of inputContainer */}
+//       {/* Suggestions - Outside of inputContainer */}
 //       {suggestions.length > 0 && (
 //         <View style={styles.suggestionBox}>
 //           <FlatList
@@ -131,6 +131,7 @@
 //             keyExtractor={(item) => item.place_id}
 //             renderItem={({ item }) => (
 //               <TouchableOpacity
+//                 style={styles.suggestionItem}
 //                 onPress={() =>
 //                   placesSearchRef.current.fetchPlaceDetails(item.place_id, item.description)
 //                 }>
@@ -153,37 +154,48 @@
 //   header: {
 //     flexDirection: 'row',
 //     alignItems: 'center',
+//     marginBottom: 20,
 //   },
 //   headerText: {
 //     color: Gold,
-//     fontSize: 18,
-//     paddingLeft: 10,
+//     fontSize: 20,
+//     fontWeight: '600',
+//     paddingLeft: 15,
 //   },
 //   inputContainer: {
 //     borderColor: Gold,
 //     borderWidth: 1,
-//     marginTop: 20,
-//     padding: 10,
-//     borderRadius: 8,
+//     padding: 15,
+//     borderRadius: 10,
 //     flexDirection: 'row',
 //     gap: 20,
 //   },
 //   iconColumn: {
+//     gap: 25,
+//     paddingTop: 8,
+//   },
+//   inputsColumn: {
 //     gap: 20,
+//     width: '85%',
 //   },
 //   suggestionBox: {
-//     marginTop: 10,
+//     marginTop: 15,
 //     backgroundColor: '#222',
-//     borderRadius: 8,
-//     padding: 8,
+//     borderRadius: 10,
+//     padding: 10,
+//     maxHeight: 300,
 //   },
-//   suggestionText: {
-//     color: White,
-//     paddingVertical: 8,
+//   suggestionItem: {
+//     paddingVertical: 12,
 //     borderBottomWidth: 1,
 //     borderBottomColor: '#444',
 //   },
-// });
+//   suggestionText: {
+//     color: White,
+//     fontSize: 14,
+//   },
+// });    
+
 
 
 
@@ -220,6 +232,7 @@ export default function Location() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [activeType, setActiveType] = useState<'pickup' | 'drop' | null>(null);
   const [fullLocationDescription, setFullLocationDescription] = useState('');
+  const [currentLocationLabel, setCurrentLocationLabel] = useState('Current Location');
 
   const placesSearchRef = useRef<any>(null);
 
@@ -259,6 +272,8 @@ export default function Location() {
       setPickupLocation({ lat: coords.lat, lng: coords.lng, description });
       setPickupSelected(true);
       setActiveType(null);
+      // If user selects a different pickup location, it's no longer the current location
+      setCurrentLocationLabel(description);
     } else if (activeType === 'drop') {
       if (!pickupSelected) {
         Alert.alert('Please select your pickup location first');
@@ -296,7 +311,7 @@ export default function Location() {
           <PlacesSearch
             ref={placesSearchRef}
             placeholder="Pickup location"
-            initialValue="Your Current Location"
+            initialValue={currentLocationLabel}
             onPlaceSelected={handleSelect}
             setSuggestions={setSuggestions}
             setActive={() => setActiveType('pickup')}
@@ -334,6 +349,7 @@ export default function Location() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -384,4 +400,4 @@ const styles = StyleSheet.create({
     color: White,
     fontSize: 14,
   },
-});    
+});   
